@@ -1,0 +1,91 @@
+function ProteinIsing(A0,T,tf)
+
+%A0 should be square
+A = A0;
+L = length(A);
+
+for(tStep=1:tf)
+    x = [find(A==1);find(A==-1)];
+    i = x(randi(length(x),1));      %i = random index in A corresponding to a +/- 1
+    [ix,iy] = ind2sub(size(A),i);
+
+    
+    if(ix>=3 && ix<=L-2 && iy>=3 && iy<=L-2)
+        %vector of 8 neighbors about i
+        nhbrs = [(i-L-1:i-L+1)',(i-1:i+1)',(i+L-1:i+L+1)'];
+        zeroEntries = find(A==0);
+        
+        idx=1;
+        zeroNhbrs = inf;
+        for(k = 1:length(zeroEntries))
+            if(any(any(zeroEntries(k) == nhbrs)))
+                zeroNhbrs(idx)=nhbrs(find(zeroEntries(k) == nhbrs));
+                idx=idx+1;
+            end
+        end
+        if(zeroNhbrs(1)==inf)
+            clear zeroNhbrs;
+            continue;
+        end
+        r = randi(length(zeroNhbrs),1); %random index in nhbrs
+        j = zeroNhbrs(r);  % j = random index in A corresponding to 0 neighbor of i
+        
+        nhbrs2 = [(i-2*L-2:i-2*L+2)',(i-L-2:i-L+2)',(i-2:i+2)',(i+L-2:i+L+2)',(i+2*L-2:i+2*L+2)'];
+        ai = A(nhbrs2);
+        A2 = A;
+        A2(i) = 0;
+        A2(j) = A(i);
+        af = A2(nhbrs2);
+
+        
+        dE = h(af)-h(ai);
+        dE
+        exp(-dE/T)
+        if(dE<=0)
+            out = 'blah'
+            A=A2;
+        elseif(rand()<exp(-dE/T))
+            exp(-dE/T)
+            A=A2;
+        end
+        
+        toPlot1 = A;
+        toPlot2 = A;
+        toPlot(toPlot<0) = 0;
+        spy(toPlot);
+        hold on;
+        
+    end
+%     pause(.1)
+end
+
+end
+
+function e = h(a)
+    L = 5;
+    nhbrs = [2:5,7:10,12:15,17:20];
+    e = 0;
+    for(i = nhbrs)
+        e = e+J(a(i),a(i-1))*((a(i)==a(i-1))+(a(i)==-a(i-1)));
+        e = e+J(a(i),a(i+L))*((a(i)==a(i+L))+(a(i)==-a(i+L)));
+        e = e+J(a(i),a(i+L-1))*((a(i)==a(i+L-1))+(a(i)==-a(i+L-1)));
+    end
+    %need energy at boundaries
+    e = -e;
+end
+
+function z = J(i,j)
+    if(i==j && i==0)
+        z = 1/2;
+    elseif(i==j && i==1)
+        z = 5000;
+    elseif(i==j && i==-1)
+        z = 5000;
+    elseif(i==1 && j==-1)
+        z = 1000;
+    elseif(i==-1 && j==1)
+        z = 1000;
+    else
+        z = 1;
+    end
+end
